@@ -1,4 +1,6 @@
 <?php
+    // Hans version
+    // header('Content-Type: application/json');
 
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -10,8 +12,12 @@
     $dbh = new PDO("mysql: host=localhost; dbname=moviedatabase; charset=utf8", "Anders", "abc123");
 
     // Kolla om det finns ett ID-värde med.
-    if(is_numeric($_GET["id"])){
+    if(is_numeric($_GET['id'])){
         $idString = "movies.ID = " . $_GET["id"];
+    }
+    else {
+        echo "Error! ID must be a number";
+        exit;
     }
 
     // $idString är antingen tom
@@ -22,7 +28,6 @@
         WHERE " . $idString
     );
 
-
     if($stmt->execute()) {
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -30,12 +35,16 @@
         $result = $stmt->errorInfo();
         var_dump($stmt);
     }
+
+    // Om queryin inte hittar något, ge felmeddelande
+    if($result == NULL){
+        echo "Error! No value!";
+    } 
+    // elseif() {
+
+    // }
     
     $result = json_encode($result);
     echo $result;
-
-
-
-
 
 ?>
