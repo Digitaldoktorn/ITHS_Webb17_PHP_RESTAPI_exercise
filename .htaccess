@@ -1,0 +1,6 @@
+# Rewrite för att få till en snygg REST-URL.
+  RewriteEngine On
+#RewriteRule ^movies$ movies.php [NC, L]
+  RewriteRule ^movies/$ movies.php [NC,L]
+  RewriteRule ^movies/([0-9]+)/?$ movies.php?id=$1 [NC,L]
+#RewriteRule ^movies/([a-zA-Z0-9]/_/-]+)/?$ movies.php?title=$1 [NC, L]
