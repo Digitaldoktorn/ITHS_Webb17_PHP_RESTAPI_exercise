@@ -1,11 +1,7 @@
 <?php
-    // Punkt 1-4 från Hans version
     // header('Content-Type: application/json');
 
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-
+    // Initiala variable
     $idString = "1"; // defaultvärde 1. Om  man ej skriver in ID i URL, ska då lista alla
     $sort = "";
     $limit = "";
@@ -13,18 +9,10 @@
     // Vill användaren sortera efter någon kolumn?
     if(isset($_GET['sort'])){
         $sort = " ORDER BY " . $_GET['sort'];
-
-        // I vilken ordning vill vi sortera?
-        if(isset($_GET['DESC'])){
-            $sort .= " DESC ";
-        }
-        else {
-            $sort .= " ASC ";
-        }
     }
 
     // Vill användaren bara visa några
-    if((isset($_GET['limit'])) && (is_numeric($_GET['limit']))){
+    if((isset($_GET['limit'])) {
         $limit = " LIMIT " . $_GET['limit'];
     }
 
@@ -39,14 +27,11 @@
         VALUES
         (:mTitle, :year, :cat)
         ");
-
         $stmt->bindParam(":mTitle", $_POST['movieTitle']);
         $stmt->bindParam(":year", $_POST['year']);
         $stmt->bindParam(":cat", $_POST['category']);
-
         if($stmt->execute()){
             $result = $dbh->lastInsertId();
-
         }
         else {
             $result = $stmt->errorInfo();
@@ -54,13 +39,11 @@
         $result = json_encode($result);
         echo $result;
     }
-
     else {
         // Kolla om det finns ett ID-värde med.
         if(is_numeric($_GET['id'])){
             $idString = "movies.ID = " . $_GET["id"];
         }
-        
         if (isset($_GET['title'])){
             // Kolla om det finns bindesstreck i titeln.
             if (strpos($_GET['title'], "-") !== false) {
@@ -69,20 +52,33 @@
             // Ska vi ha LIKE här?
             $idString = "movieTitle LIKE '" . $_GET['title'] . "%'";
         }   
-
         // $idString är antingen tom
         //eller fylld med "ID=" + ett nummer
         // eller fylld med movieTitle= + en titel
         $stmt = $dbh->prepare("
             SELECT *
             FROM movies
+            LEFT JOIN actorsPerMovie ON movies.ID = actorsPerMovie.movie
+            LEFT JOIN actors ON actors.ID = actorsPerMovie.actor
+            LEFT JOIN categories ON categories.categoryID = movies.category
             WHERE " . $idString .
             $sort .
             $limit
         );
-
         if($stmt->execute()) {
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            while ($row = $stmt->fetchAll(PDO::FETCH_ASSOC)) {
+                /*
+                Då en film kan innehålla flera skådespelare,
+                ger SQL resultatet i flera rader, och det vill
+                jag inte ha när det är fråga om JSON.
+                Därför sparar jag resultatet rad för rad
+                och bygger upp en extra array (en nivå ner)
+                på actors, i vilken jag placerar skådespelarna.
+                */ 
+                $result[$row['movie']]['movieTitle'] = $row['movieTitle'];
+                $result[$row['movie']]['year'] = $row['Year'];
+                $result[$row['movie']]['category'] = $row['categoryName'];
+                $result[$row['movie']]['actors'][] = $row['actorName'];
 
         } else {
             $result = $stmt->errorInfo();
