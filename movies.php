@@ -79,8 +79,9 @@
                 $result[$row['movie']]['year'] = $row['Year'];
                 $result[$row['movie']]['category'] = $row['categoryName'];
                 $result[$row['movie']]['actors'][] = $row['actorName'];
-
-        } else {
+            }
+        } 
+        else {
             $result = $stmt->errorInfo();
             var_dump($stmt);
         }
