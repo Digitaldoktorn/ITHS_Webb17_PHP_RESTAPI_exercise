@@ -12,7 +12,7 @@
     }
 
     // Vill användaren bara visa några
-    if((isset($_GET['limit'])) {
+    if(isset($_GET['limit'])) {
         $limit = " LIMIT " . $_GET['limit'];
     }
 
